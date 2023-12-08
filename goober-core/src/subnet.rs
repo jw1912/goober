@@ -1,4 +1,4 @@
-use crate::{Vector, Matrix, ReLU, SparseLayer};
+use crate::{Vector, Matrix, activation::ReLU, layer::SparseLayer};
 
 #[repr(C)]
 #[derive(Clone, Copy)]
