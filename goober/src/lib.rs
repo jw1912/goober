@@ -1,16 +1,15 @@
 pub mod activation;
 pub mod layer;
 mod matrix;
-mod subnet;
 mod vector;
 
 pub use matrix::Matrix;
-pub use subnet::SubNet;
-pub use vector::Vector;
+pub use vector::{Vector, SparseVector};
+
+pub use goober_derive::NetworkUtils;
 
 pub trait InputLayer {
     type Type;
-    fn input_layer(&self) -> Self::Type;
 }
 
 pub trait OutputLayer {
@@ -18,8 +17,8 @@ pub trait OutputLayer {
     fn output_layer(&self) -> Self::Type;
 }
 
-pub trait NetworkUtils: OutputLayer + InputLayer {
-    type Layers: OutputLayer + InputLayer;
+pub trait NetworkUtils {
+    type Layers: OutputLayer;
 
     fn adam(&mut self, g: &Self, m: &mut Self, v: &mut Self, adj: f32, lr: f32);
 
@@ -27,9 +26,11 @@ pub trait NetworkUtils: OutputLayer + InputLayer {
 }
 
 pub trait Network: NetworkUtils {
-    fn out_with_layers(&self, input: <Self::Layers as InputLayer>::Type) -> Self::Layers;
+    type InputType;
 
-    fn out(&self, input: <Self::Layers as InputLayer>::Type) -> <Self::Layers as OutputLayer>::Type {
+    fn out_with_layers(&self, input: Self::InputType) -> Self::Layers;
+
+    fn out(&self, input: Self::InputType) -> <Self::Layers as OutputLayer>::Type {
         self.out_with_layers(input).output_layer()
     }
 }
@@ -37,7 +38,7 @@ pub trait Network: NetworkUtils {
 pub trait Trainable: Network {
     fn backprop(
         &self,
-        feats: <Self::Layers as InputLayer>::Type,
+        input: Self::InputType,
         grad: &mut Self,
         out_err: <Self::Layers as OutputLayer>::Type,
         layers: Self::Layers,

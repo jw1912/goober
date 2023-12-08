@@ -5,6 +5,18 @@ pub trait Activation: Copy {
 }
 
 #[derive(Clone, Copy)]
+pub struct Identity;
+impl Activation for Identity {
+    fn activate(x: f32) -> f32 {
+        x
+    }
+
+    fn derivative(_: f32) -> f32 {
+        1.0
+    }
+}
+
+#[derive(Clone, Copy)]
 pub struct ReLU;
 impl Activation for ReLU {
     fn activate(x: f32) -> f32 {
