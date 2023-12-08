@@ -1,7 +1,6 @@
 [workspace]
 members = [
     "goober",
-    "goober-core",
     "goober-derive",
 ]
 
