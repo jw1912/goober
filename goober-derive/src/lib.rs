@@ -1,6 +1,6 @@
 use proc_macro2::{Ident, Span, TokenStream};
 use quote::{quote, ToTokens};
-use syn::{parse_macro_input, Data, DeriveInput, Fields, Field};
+use syn::{parse_macro_input, Data, DeriveInput, Field, Fields};
 
 #[proc_macro_derive(FeedForwardNetwork)]
 pub fn network_utils(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
@@ -67,31 +67,6 @@ pub fn network_utils(input: proc_macro::TokenStream) -> proc_macro::TokenStream 
                 #adam_expr
             }
 
-            fn boxed_and_zeroed() -> Box<Self> {
-                unsafe {
-                    let layout = std::alloc::Layout::new::<Self>();
-                    let ptr = std::alloc::alloc_zeroed(layout);
-                    if ptr.is_null() {
-                        std::alloc::handle_alloc_error(layout);
-                    }
-                    Box::from_raw(ptr.cast())
-                }
-            }
-
-            fn write_to_bin(&self, path: &str) {
-                use std::io::Write;
-                const SIZEOF: usize = std::mem::size_of::<#name>();
-
-                let mut file = std::fs::File::create(path).unwrap();
-
-                unsafe {
-                    let ptr: *const Self = self;
-                    let slice_ptr: *const u8 = std::mem::transmute(ptr);
-                    let slice = std::slice::from_raw_parts(slice_ptr, SIZEOF);
-                    file.write_all(slice).unwrap();
-                }
-            }
-
             fn out_with_layers(&self, input: &Self::InputType) -> Self::Layers {
                 #layer_exprs
                 Self::Layers {
@@ -105,7 +80,7 @@ pub fn network_utils(input: proc_macro::TokenStream) -> proc_macro::TokenStream 
                 grad: &mut Self,
                 err: <Self::Layers as goober::OutputLayer>::Type,
                 layers: &Self::Layers,
-            ) {
+            ) -> Self::InputType {
                 #backprop_exprs
             }
         }
@@ -113,17 +88,13 @@ pub fn network_utils(input: proc_macro::TokenStream) -> proc_macro::TokenStream 
         #sparse
     };
 
-    let r = proc_macro::TokenStream::from(expanded);
-    println!("{r}");
-    r
+    proc_macro::TokenStream::from(expanded)
 }
 
 fn first_field(data: &Data) -> &Field {
     match *data {
         Data::Struct(ref data) => match data.fields {
-            Fields::Named(ref fields) => {
-                fields.named.first().unwrap()
-            }
+            Fields::Named(ref fields) => fields.named.first().unwrap(),
             _ => unimplemented!(),
         },
         Data::Enum(_) | Data::Union(_) => unimplemented!(),
@@ -136,7 +107,7 @@ fn gen_add_impl(data: &Data) -> TokenStream {
             Fields::Named(ref fields) => {
                 let recurse = fields.named.iter().map(|f| {
                     let name = &f.ident;
-                    quote!(self.#name += rhs.#name;)
+                    quote!(self.#name += &rhs.#name;)
                 });
                 quote!(#(#recurse)*)
             }
@@ -153,7 +124,7 @@ fn gen_layer_fields(data: &Data) -> TokenStream {
                 let recurse = fields.named.iter().map(|f| {
                     let name = &f.ident;
                     let ty = &f.ty;
-                    quote!(#name: <#ty as goober::OutputLayer>::Type,)
+                    quote!(#name: <#ty as goober::FeedForwardNetwork>::Layers,)
                 });
                 quote!(#(#recurse)*)
             }
@@ -171,9 +142,9 @@ fn gen_output_type(data: &Data) -> TokenStream {
                 let name = &f1.ident;
                 let ty = &f1.ty;
                 quote! {
-                    type Type = <#ty as goober::OutputLayer>::Type;
+                    type Type = <<#ty as goober::FeedForwardNetwork>::Layers as goober::OutputLayer>::Type;
                     fn output_layer(&self) -> Self::Type {
-                        self.#name
+                        self.#name.output_layer()
                     }
                 }
             }
@@ -189,7 +160,7 @@ fn gen_input_type(data: &Data) -> TokenStream {
             Fields::Named(ref fields) => {
                 let f1 = fields.named.first().unwrap();
                 let ty = &f1.ty;
-                quote!(<#ty as goober::InputLayer>::Type)
+                quote!(<#ty as goober::FeedForwardNetwork>::InputType)
             }
             _ => unimplemented!(),
         },
@@ -221,9 +192,9 @@ fn gen_layer_exprs(data: &Data) -> TokenStream {
                 let recurse = fields.named.iter().enumerate().map(|(i, f)| {
                     let name = &f.ident;
                     let res = if i > 0 {
-                        quote!(let #name = self.#name.out(&#prev);)
+                        quote!(let #name = self.#name.out_with_layers(&#prev.output_layer());)
                     } else {
-                        quote!(let #name = self.#name.out(input);)
+                        quote!(let #name = self.#name.out_with_layers(input);)
                     };
 
                     prev = name;
@@ -261,9 +232,9 @@ fn gen_backprop_exprs(data: &Data) -> TokenStream {
                 let mut list = fields.named.iter().enumerate().map(|(i, f)| {
                         let name = &f.ident;
                         let res = if i > 0 {
-                            quote!(let err = self.#name.backprop(&mut grad.#name, err, &layers.#prev, layers.#name);)
+                            quote!(let err = self.#name.backprop(&layers.#prev.output_layer(), &mut grad.#name, err, &layers.#name);)
                         } else {
-                            quote!(let err = self.#name.backprop(&mut grad.#name, err, input, layers.#name);)
+                            quote!(self.#name.backprop(input, &mut grad.#name, err, &layers.#name))
                         };
 
                         prev = name;
@@ -292,7 +263,7 @@ fn gen_layer_exprs_sans(data: &Data) -> TokenStream {
                         prev = name;
                         res
                     });
-                    quote!{
+                    quote! {
                         #(#recurse)*
                         #prev
                     }
