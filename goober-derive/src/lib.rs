@@ -47,7 +47,7 @@ pub fn network_utils(input: proc_macro::TokenStream) -> proc_macro::TokenStream 
                 }
             }
 
-            fn out_with_layers(&self, input: Self::InputType) -> Self::Layers {
+            fn out_with_layers(&self, input: &Self::InputType) -> Self::Layers {
                 #layer_exprs
                 Self::Layers {
                     #layer_exprs_fields
@@ -56,10 +56,10 @@ pub fn network_utils(input: proc_macro::TokenStream) -> proc_macro::TokenStream 
 
             fn backprop(
                 &self,
-                input: Self::InputType,
+                input: &Self::InputType,
                 grad: &mut Self,
                 err: <Self::Layers as goober::OutputLayer>::Type,
-                layers: Self::Layers,
+                layers: &Self::Layers,
             ) {
                 #backprop_exprs
             }
@@ -177,7 +177,7 @@ fn gen_layer_exprs(data: &Data) -> TokenStream {
                 let recurse = fields.named.iter().enumerate().map(|(i, f)| {
                     let name = &f.ident;
                     let res = if i > 0 {
-                        quote!(let #name = self.#name.out(#prev);)
+                        quote!(let #name = self.#name.out(&#prev);)
                     } else {
                         quote!(let #name = self.#name.out(input);)
                     };
@@ -217,7 +217,7 @@ fn gen_backprop_exprs(data: &Data) -> TokenStream {
                 let mut list = fields.named.iter().enumerate().map(|(i, f)| {
                         let name = &f.ident;
                         let res = if i > 0 {
-                            quote!(let err = self.#name.backprop(&mut grad.#name, err, layers.#prev, layers.#name);)
+                            quote!(let err = self.#name.backprop(&mut grad.#name, err, &layers.#prev, layers.#name);)
                         } else {
                             quote!(let err = self.#name.backprop(&mut grad.#name, err, input, layers.#name);)
                         };

@@ -24,7 +24,7 @@ impl SparseVector {
 }
 
 #[repr(C)]
-#[derive(Clone, Copy)]
+#[derive(Clone, Copy, Debug)]
 pub struct Vector<const N: usize> {
     inner: [f32; N],
 }

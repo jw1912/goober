@@ -46,8 +46,8 @@ impl<T: Activation, const M: usize, const N: usize> Layer<T, M, N> {
         }
     }
 
-    pub fn out(&self, inp: Vector<M>) -> Vector<N> {
-        (self.weights * inp + self.bias).activate::<T>()
+    pub fn out(&self, inp: &Vector<M>) -> Vector<N> {
+        (self.weights * *inp + self.bias).activate::<T>()
     }
 
     pub fn transpose_mul(&self, out: Vector<N>) -> Vector<M> {
@@ -58,13 +58,13 @@ impl<T: Activation, const M: usize, const N: usize> Layer<T, M, N> {
         &self,
         grad: &mut Self,
         mut cumulated: Vector<N>,
-        inp: Vector<M>,
+        inp: &Vector<M>,
         out: Vector<N>,
     ) -> Vector<M> {
         cumulated = cumulated * out.derivative::<T>();
 
         for (i, row) in grad.weights.iter_mut().enumerate() {
-            *row += cumulated[i] * inp;
+            *row += cumulated[i] * *inp;
         }
 
         grad.bias += cumulated;
@@ -136,7 +136,7 @@ impl<T: Activation, const M: usize, const N: usize> SparseLayer<T, M, N> {
         }
     }
 
-    pub fn out(&self, feats: <Self as InputLayer>::Type) -> Vector<N> {
+    pub fn out(&self, feats: &[usize]) -> Vector<N> {
         let mut res = self.bias;
 
         for &feat in feats.iter() {
@@ -150,7 +150,7 @@ impl<T: Activation, const M: usize, const N: usize> SparseLayer<T, M, N> {
         &self,
         grad: &mut Self,
         mut cumulated: Vector<N>,
-        feats: <Self as InputLayer>::Type,
+        feats: &<Self as InputLayer>::Type,
         ft: Vector<N>,
     ) {
         cumulated = cumulated * ft.derivative::<T>();
