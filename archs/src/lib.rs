@@ -1,4 +1,8 @@
-use goober::{activation::{Identity, ReLU}, layer::{SparseLayer, Layer}, FeedForwardNetwork};
+use goober::{
+    activation::{Identity, ReLU},
+    layer::{Layer, SparseLayer},
+    FeedForwardNetwork,
+};
 
 #[repr(C)]
 #[derive(Clone, Copy, FeedForwardNetwork)]

@@ -55,13 +55,7 @@ impl<const M: usize, const N: usize> Matrix<M, N> {
 
     pub fn adam(&mut self, g: &Self, m: &mut Self, v: &mut Self, adj: f32, lr: f32) {
         for i in 0..M {
-            self.inner[i].adam(
-                g.inner[i],
-                &mut m.inner[i],
-                &mut v.inner[i],
-                adj,
-                lr,
-            );
+            self.inner[i].adam(g.inner[i], &mut m.inner[i], &mut v.inner[i], adj, lr);
         }
     }
 }

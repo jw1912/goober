@@ -16,7 +16,10 @@ impl<const N: usize> std::ops::Deref for SparseVector<N> {
 
 impl<const N: usize> SparseVector<N> {
     pub const fn new() -> Self {
-        Self { inner: [0; N], len: 0 }
+        Self {
+            inner: [0; N],
+            len: 0,
+        }
     }
 }
 

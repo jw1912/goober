@@ -4,7 +4,7 @@ mod matrix;
 mod vector;
 
 pub use matrix::Matrix;
-pub use vector::{Vector, SparseVector};
+pub use vector::{SparseVector, Vector};
 
 pub use goober_derive::FeedForwardNetwork;
 
