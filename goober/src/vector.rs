@@ -1,25 +1,25 @@
 use crate::activation::Activation;
 
 #[repr(C)]
-#[derive(Clone, Copy)]
-pub struct SparseVector<const N: usize> {
-    inner: [usize; N],
-    len: usize,
+#[derive(Clone)]
+pub struct SparseVector {
+    inner: Vec<usize>,
 }
 
-impl<const N: usize> std::ops::Deref for SparseVector<N> {
+impl std::ops::Deref for SparseVector {
     type Target = [usize];
     fn deref(&self) -> &Self::Target {
-        &self.inner[..self.len]
+        &self.inner
     }
 }
 
-impl<const N: usize> SparseVector<N> {
-    pub const fn new() -> Self {
-        Self {
-            inner: [0; N],
-            len: 0,
-        }
+impl SparseVector {
+    pub fn with_capacity(cap: usize) -> Self {
+        Self { inner: Vec::with_capacity(cap), }
+    }
+
+    pub fn push(&mut self, val: usize) {
+        self.inner.push(val);
     }
 }
 

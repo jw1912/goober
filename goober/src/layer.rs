@@ -101,7 +101,7 @@ pub struct SparseLayer<T: Activation, const M: usize, const N: usize> {
 }
 
 impl<T: Activation, const M: usize, const N: usize> InputLayer for SparseLayer<T, M, N> {
-    type Type = SparseVector<M>;
+    type Type = SparseVector;
 }
 
 impl<T: Activation, const M: usize, const N: usize> OutputLayer for SparseLayer<T, M, N> {
