@@ -15,7 +15,9 @@ impl std::ops::Deref for SparseVector {
 
 impl SparseVector {
     pub fn with_capacity(cap: usize) -> Self {
-        Self { inner: Vec::with_capacity(cap), }
+        Self {
+            inner: Vec::with_capacity(cap),
+        }
     }
 
     pub fn push(&mut self, val: usize) {
