@@ -23,7 +23,9 @@ pub trait FeedForwardNetwork {
 
     fn adam(&mut self, g: &Self, m: &mut Self, v: &mut Self, adj: f32, lr: f32);
 
-    fn zeroed() -> Self;
+    fn boxed_and_zeroed() -> Box<Self>;
+
+    fn write_to_bin(&self, path: &str);
 
     fn out_with_layers(&self, input: &Self::InputType) -> Self::Layers;
 

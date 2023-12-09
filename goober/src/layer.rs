@@ -124,6 +124,14 @@ impl<T: Activation, const M: usize, const N: usize> SparseLayer<T, M, N> {
     pub const INPUT_SIZE: usize = M;
     pub const OUTPUT_SIZE: usize = N;
 
+    pub fn weights_row(&self, idx: usize) -> Vector<N> {
+        self.weights[idx]
+    }
+
+    pub fn bias(&self) -> Vector<N> {
+        self.bias
+    }
+
     pub const fn zeroed() -> Self {
         Self::from_raw(Matrix::zeroed(), Vector::zeroed())
     }
