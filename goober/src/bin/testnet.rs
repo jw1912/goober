@@ -1,8 +1,8 @@
-use goober::{activation::ReLU, layer::DenseConnected, FeedForwardNetwork, OutputLayer, Vector};
+use goober::{activation::ReLU, layer::{DenseConnected, SparseConnected}, FeedForwardNetwork, OutputLayer, SparseVector};
 
 #[derive(FeedForwardNetwork)]
 pub struct TestNet {
-    l1: DenseConnected<ReLU, 768, 32>,
+    l1: SparseConnected<ReLU, 768, 32>,
     l2: SubTestNet,
 }
 
@@ -15,7 +15,8 @@ pub struct SubTestNet {
 fn main() {
     let net = TestNet::boxed_and_zeroed();
 
-    let input = Vector::from_raw([1.0; 768]);
+    let mut input = SparseVector::with_capacity(8);
+    input.push(5);
     let output = net.out(&input);
     println!("{}", output[0])
 }

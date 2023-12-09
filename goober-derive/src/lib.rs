@@ -22,7 +22,7 @@ pub fn network_utils(input: proc_macro::TokenStream) -> proc_macro::TokenStream 
     let backprop_exprs = gen_backprop_exprs(&input.data);
 
     let sparse = if first_type.to_token_stream().to_string().contains("Sparse") {
-        let first_output_type = quote!(<#first_type as goober::OutputLayer>::Type);
+        let first_output_type = quote!(<<#first_type as goober::FeedForwardNetwork>::Layers as goober::OutputLayer>::Type);
         let layer_exprs_sans = gen_layer_exprs_sans(&input.data);
 
         quote! {

@@ -12,10 +12,10 @@ pub struct SparseConnected<T: Activation, const M: usize, const N: usize> {
     phantom: PhantomData<T>,
 }
 
-impl<T: Activation, const M: usize, const N: usize> std::ops::AddAssign<SparseConnected<T, M, N>>
+impl<T: Activation, const M: usize, const N: usize> std::ops::AddAssign<&SparseConnected<T, M, N>>
     for SparseConnected<T, M, N>
 {
-    fn add_assign(&mut self, rhs: SparseConnected<T, M, N>) {
+    fn add_assign(&mut self, rhs: &SparseConnected<T, M, N>) {
         self.weights += &rhs.weights;
         self.bias += rhs.bias;
     }
