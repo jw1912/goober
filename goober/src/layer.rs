@@ -87,6 +87,10 @@ pub struct SparseLayer<T: Activation, const M: usize, const N: usize> {
     phantom: PhantomData<T>,
 }
 
+impl <T: Activation, const M: usize, const N: usize> InputLayer for SparseLayer<T, M, N> {
+    type Type = SparseVector<M>;
+}
+
 impl <T: Activation, const M: usize, const N: usize> OutputLayer for SparseLayer<T, M, N> {
     type Type = Vector<N>;
     fn output_layer(&self) -> Self::Type {
@@ -113,7 +117,7 @@ impl<T: Activation, const M: usize, const N: usize> SparseLayer<T, M, N> {
         Self { weights, bias, phantom: PhantomData }
     }
 
-    pub fn out<const C: usize>(&self, feats: SparseVector<C>) -> Vector<N> {
+    pub fn out(&self, feats: <Self as InputLayer>::Type) -> Vector<N> {
         let mut res = self.bias;
 
         for &feat in feats.iter() {
@@ -123,11 +127,11 @@ impl<T: Activation, const M: usize, const N: usize> SparseLayer<T, M, N> {
         res.activate::<T>()
     }
 
-    pub fn backprop<const C: usize>(
+    pub fn backprop(
         &self,
         grad: &mut Self,
         mut cumulated: Vector<N>,
-        feats: SparseVector<C>,
+        feats: <Self as InputLayer>::Type,
         ft: Vector<N>,
     ) {
         cumulated = cumulated * ft.derivative::<T>();
