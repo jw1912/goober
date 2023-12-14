@@ -29,8 +29,8 @@ where A: FeedForwardNetwork, B: FeedForwardNetwork
 impl<A, B> OutputLayer<A::OutputType> for AddSubNetsLayers<A, B>
 where
     A: FeedForwardNetwork,
-    B: FeedForwardNetwork,
-    A::OutputType: std::ops::Add<B::OutputType, Output = A::OutputType>,
+    B: FeedForwardNetwork<OutputType = A::OutputType>,
+    A::OutputType: std::ops::Add<A::OutputType, Output = A::OutputType>,
 {
     fn output_layer(&self) -> A::OutputType {
         self.a.output_layer() + self.b.output_layer()
@@ -41,7 +41,7 @@ impl<A, B> FeedForwardNetwork for Add<A, B>
 where
     A: FeedForwardNetwork,
     B: FeedForwardNetwork<InputType = A::InputType, OutputType = A::OutputType>,
-    A::OutputType: std::ops::Add<B::OutputType, Output = A::OutputType>,
+    A::OutputType: std::ops::Add<A::OutputType, Output = A::OutputType>,
     A::InputType: std::ops::Add<A::InputType, Output = A::InputType>,
 {
     type InputType = A::InputType;
