@@ -10,8 +10,8 @@ pub struct Add<A, B> {
 
 impl<A, B> std::ops::AddAssign<&Add<A, B>> for Add<A, B>
 where
-    for <'a> A: FeedForwardNetwork + std::ops::AddAssign<&'a A>,
-    for <'a> B: FeedForwardNetwork + std::ops::AddAssign<&'a B>,
+    for<'a> A: FeedForwardNetwork + std::ops::AddAssign<&'a A>,
+    for<'a> B: FeedForwardNetwork + std::ops::AddAssign<&'a B>,
 {
     fn add_assign(&mut self, rhs: &Add<A, B>) {
         self.a += &rhs.a;
@@ -20,7 +20,9 @@ where
 }
 
 pub struct AddLayers<A, B>
-where A: FeedForwardNetwork, B: FeedForwardNetwork
+where
+    A: FeedForwardNetwork,
+    B: FeedForwardNetwork,
 {
     a: A::Layers,
     b: B::Layers,
