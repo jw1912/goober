@@ -93,188 +93,141 @@ pub fn network_utils(input: proc_macro::TokenStream) -> proc_macro::TokenStream 
     proc_macro::TokenStream::from(expanded)
 }
 
+macro_rules! struct_with_fields_only {
+    (|$data:ident, $fields:ident| $thing:expr) => {{
+        match *$data {
+            Data::Struct(ref $data) => match $data.$fields {
+                Fields::Named(ref $fields) => {
+                    $thing
+                },
+                _ => unimplemented!(),
+            },
+            Data::Enum(_) | Data::Union(_) => unimplemented!(),
+        }
+    }};
+}
+
 fn first_field(data: &Data) -> &Field {
-    match *data {
-        Data::Struct(ref data) => match data.fields {
-            Fields::Named(ref fields) => fields.named.first().unwrap(),
-            _ => unimplemented!(),
-        },
-        Data::Enum(_) | Data::Union(_) => unimplemented!(),
-    }
+    struct_with_fields_only!(|data, fields| fields.named.first().unwrap())
 }
 
 fn gen_add_impl(data: &Data) -> TokenStream {
-    match *data {
-        Data::Struct(ref data) => match data.fields {
-            Fields::Named(ref fields) => {
-                let recurse = fields.named.iter().map(|f| {
-                    let name = &f.ident;
-                    quote!(self.#name += &rhs.#name;)
-                });
-                quote!(#(#recurse)*)
-            }
-            _ => unimplemented!(),
-        },
-        Data::Enum(_) | Data::Union(_) => unimplemented!(),
-    }
+    struct_with_fields_only!(|data, fields| {
+        let recurse = fields.named.iter().map(|f| {
+            let name = &f.ident;
+            quote!(self.#name += &rhs.#name;)
+        });
+        quote!(#(#recurse)*)
+    })
 }
 
 fn gen_layer_fields(data: &Data) -> TokenStream {
-    match *data {
-        Data::Struct(ref data) => match data.fields {
-            Fields::Named(ref fields) => {
-                let recurse = fields.named.iter().map(|f| {
-                    let name = &f.ident;
-                    let ty = &f.ty;
-                    quote!(#name: <#ty as goober::FeedForwardNetwork>::Layers,)
-                });
-                quote!(#(#recurse)*)
-            }
-            _ => unimplemented!(),
-        },
-        Data::Enum(_) | Data::Union(_) => unimplemented!(),
-    }
+    struct_with_fields_only!(|data, fields| {
+        let recurse = fields.named.iter().map(|f| {
+            let name = &f.ident;
+            let ty = &f.ty;
+            quote!(#name: <#ty as goober::FeedForwardNetwork>::Layers,)
+        });
+        quote!(#(#recurse)*)
+    })
 }
 
 fn gen_output_type(data: &Data) -> TokenStream {
-    match *data {
-        Data::Struct(ref data) => match data.fields {
-            Fields::Named(ref fields) => {
-                let f1 = fields.named.last().unwrap();
-                let name = &f1.ident;
-                let ty = &f1.ty;
-                quote! {
-                    type Type = <<#ty as goober::FeedForwardNetwork>::Layers as goober::OutputLayer>::Type;
-                    fn output_layer(&self) -> Self::Type {
-                        self.#name.output_layer()
-                    }
-                }
+    struct_with_fields_only!(|data, fields| {
+        let f1 = fields.named.last().unwrap();
+        let name = &f1.ident;
+        let ty = &f1.ty;
+        quote! {
+            type Type = <<#ty as goober::FeedForwardNetwork>::Layers as goober::OutputLayer>::Type;
+            fn output_layer(&self) -> Self::Type {
+                self.#name.output_layer()
             }
-            _ => unimplemented!(),
-        },
-        Data::Enum(_) | Data::Union(_) => unimplemented!(),
-    }
+        }
+    })
 }
 
 fn gen_input_type(data: &Data) -> TokenStream {
-    match *data {
-        Data::Struct(ref data) => match data.fields {
-            Fields::Named(ref fields) => {
-                let f1 = fields.named.first().unwrap();
-                let ty = &f1.ty;
-                quote!(<#ty as goober::FeedForwardNetwork>::InputType)
-            }
-            _ => unimplemented!(),
-        },
-        Data::Enum(_) | Data::Union(_) => unimplemented!(),
-    }
+    struct_with_fields_only!(|data, fields| {
+        let f1 = fields.named.first().unwrap();
+        let ty = &f1.ty;
+        quote!(<#ty as goober::FeedForwardNetwork>::InputType)
+    })
 }
 
 fn gen_adam_expr(data: &Data) -> TokenStream {
-    match *data {
-        Data::Struct(ref data) => match data.fields {
-            Fields::Named(ref fields) => {
-                let recurse = fields.named.iter().map(|f| {
-                    let name = &f.ident;
-                    quote!(self.#name.adam(&g.#name, &mut m.#name, &mut v.#name, adj, lr);)
-                });
-                quote!(#(#recurse)*)
-            }
-            _ => unimplemented!(),
-        },
-        Data::Enum(_) | Data::Union(_) => unimplemented!(),
-    }
+    struct_with_fields_only!(|data, fields| {
+        let recurse = fields.named.iter().map(|f| {
+            let name = &f.ident;
+            quote!(self.#name.adam(&g.#name, &mut m.#name, &mut v.#name, adj, lr);)
+        });
+        quote!(#(#recurse)*)
+    })
 }
 
 fn gen_layer_exprs(data: &Data) -> TokenStream {
-    match *data {
-        Data::Struct(ref data) => match data.fields {
-            Fields::Named(ref fields) => {
-                let mut prev = &None;
-                let recurse = fields.named.iter().enumerate().map(|(i, f)| {
-                    let name = &f.ident;
-                    let res = if i > 0 {
-                        quote!(let #name = self.#name.out_with_layers(&#prev.output_layer());)
-                    } else {
-                        quote!(let #name = self.#name.out_with_layers(input);)
-                    };
-
-                    prev = name;
-                    res
-                });
-                quote!(#(#recurse)*)
-            }
-            _ => unimplemented!(),
-        },
-        Data::Enum(_) | Data::Union(_) => unimplemented!(),
-    }
+    struct_with_fields_only!(|data, fields| {
+        let mut prev = &None;
+        let recurse = fields.named.iter().enumerate().map(|(i, f)| {
+            let name = &f.ident;
+            let res = if i > 0 {
+                quote!(let #name = self.#name.out_with_layers(&#prev.output_layer());)
+            } else {
+                quote!(let #name = self.#name.out_with_layers(input);)
+            };
+            prev = name;
+            res
+        });
+        quote!(#(#recurse)*)
+    })
 }
 
 fn gen_layer_exprs_fields(data: &Data) -> TokenStream {
-    match *data {
-        Data::Struct(ref data) => match data.fields {
-            Fields::Named(ref fields) => {
-                let recurse = fields.named.iter().map(|f| {
-                    let name = &f.ident;
-                    quote!(#name,)
-                });
-                quote!(#(#recurse)*)
-            }
-            _ => unimplemented!(),
-        },
-        Data::Enum(_) | Data::Union(_) => unimplemented!(),
-    }
+    struct_with_fields_only!(|data, fields| {
+        let recurse = fields.named.iter().map(|f| {
+            let name = &f.ident;
+            quote!(#name,)
+        });
+        quote!(#(#recurse)*)
+    })
 }
 
 fn gen_backprop_exprs(data: &Data) -> TokenStream {
-    match *data {
-        Data::Struct(ref data) => match data.fields {
-            Fields::Named(ref fields) => {
-                let mut prev = &None;
-                let mut list = fields.named.iter().enumerate().map(|(i, f)| {
-                        let name = &f.ident;
-                        let res = if i > 0 {
-                            quote!(let err = self.#name.backprop(&layers.#prev.output_layer(), &mut grad.#name, err, &layers.#name);)
-                        } else {
-                            quote!(self.#name.backprop(input, &mut grad.#name, err, &layers.#name))
-                        };
+    struct_with_fields_only!(|data, fields| {
+        let mut prev = &None;
+        let mut list = fields.named.iter().enumerate().map(|(i, f)| {
+                let name = &f.ident;
+                let res = if i > 0 {
+                    quote!(let err = self.#name.backprop(&layers.#prev.output_layer(), &mut grad.#name, err, &layers.#name);)
+                } else {
+                    quote!(self.#name.backprop(input, &mut grad.#name, err, &layers.#name))
+                };
 
-                        prev = name;
-                        res
-                    }).collect::<Vec<TokenStream>>();
-                list.reverse();
-                let recurse = list.into_iter();
-                quote!(#(#recurse)*)
-            }
-            _ => unimplemented!(),
-        },
-        Data::Enum(_) | Data::Union(_) => unimplemented!(),
-    }
+                prev = name;
+                res
+            }).collect::<Vec<TokenStream>>();
+        list.reverse();
+        let recurse = list.into_iter();
+        quote!(#(#recurse)*)
+    })
 }
 
 fn gen_layer_exprs_sans(data: &Data) -> TokenStream {
-    match *data {
-        Data::Struct(ref data) => match data.fields {
-            Fields::Named(ref fields) => {
-                let mut prev = &fields.named.first().unwrap().ident;
-                if fields.named.len() > 1 {
-                    let recurse = fields.named.iter().skip(1).map(|f| {
-                        let name = &f.ident;
-                        let res = quote!(let #name = self.#name.out(&#prev););
+    struct_with_fields_only!(|data, fields| {
+        let mut prev = &fields.named.first().unwrap().ident;
+        if fields.named.len() > 1 {
+            let recurse = fields.named.iter().skip(1).map(|f| {
+                let name = &f.ident;
+                let res = quote!(let #name = self.#name.out(&#prev););
 
-                        prev = name;
-                        res
-                    });
-                    quote! {
-                        #(#recurse)*
-                        #prev
-                    }
-                } else {
-                    quote!(*#prev)
-                }
+                prev = name;
+                res
+            });
+            quote! {
+                #(#recurse)*
+                #prev
             }
-            _ => unimplemented!(),
-        },
-        Data::Enum(_) | Data::Union(_) => unimplemented!(),
-    }
+        } else {
+            quote!(*#prev)
+        }
+    })
 }
