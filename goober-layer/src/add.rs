@@ -76,3 +76,9 @@ where
         a_back + b_back
     }
 }
+
+impl<A, B> Add<A, B> {
+    pub const fn from_raw(a: A, b: B) -> Self {
+        Self { a, b }
+    }
+}
