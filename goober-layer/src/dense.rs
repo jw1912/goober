@@ -85,3 +85,38 @@ impl<T: Activation, const M: usize, const N: usize> FeedForwardNetwork for Dense
         self.transpose_mul(out_err)
     }
 }
+
+#[cfg(test)]
+mod test {
+    use super::DenseConnected;
+
+    #[test]
+    fn dense_connected() {
+        use goober_core::{activation::ReLU, FeedForwardNetwork, Vector, Matrix};
+
+        let layer: DenseConnected::<ReLU, 3, 3> = DenseConnected::from_raw(
+            Matrix::from_raw([
+                Vector::from_raw([1.0, 1.0, 0.0]),
+                Vector::from_raw([1.0, 1.0, 1.0]),
+                Vector::from_raw([1.0, 0.0, 1.0]),
+            ]),
+            Vector::from_raw([0.1, 0.1, 0.2]),
+        );
+
+        let inputs = [
+            Vector::from_raw([1.0, 0.0, 0.0]),
+            Vector::from_raw([1.0, 1.0, 1.0]),
+            Vector::from_raw([5.0, 3.0, -2.0]),
+        ];
+
+        let expected = [
+            Vector::from_raw([1.1, 1.1, 1.2]),
+            Vector::from_raw([2.1, 3.1, 2.2]),
+            Vector::from_raw([8.1, 6.1, 3.2]),
+        ];
+
+        for (i, &e) in inputs.iter().zip(expected.iter()) {
+            assert_eq!(e, layer.out(i));
+        }
+    }
+}

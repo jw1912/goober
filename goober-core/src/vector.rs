@@ -1,7 +1,7 @@
 use crate::activation::Activation;
 
 #[repr(C)]
-#[derive(Clone)]
+#[derive(Clone, Debug, PartialEq, Eq)]
 pub struct SparseVector {
     inner: Vec<usize>,
 }
@@ -26,7 +26,7 @@ impl SparseVector {
 }
 
 #[repr(C)]
-#[derive(Clone, Copy, Debug)]
+#[derive(Clone, Copy, Debug, PartialEq)]
 pub struct Vector<const N: usize> {
     inner: [f32; N],
 }

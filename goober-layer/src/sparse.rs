@@ -102,3 +102,30 @@ impl<T: Activation, const M: usize, const N: usize> FeedForwardNetwork
         SparseVector::with_capacity(0)
     }
 }
+
+#[cfg(test)]
+mod test {
+    use super::SparseConnected;
+
+    #[test]
+    fn sparse_connected() {
+        use goober_core::{activation::ReLU, FeedForwardNetwork, Vector, Matrix, SparseVector};
+
+        let layer: SparseConnected::<ReLU, 3, 3> = SparseConnected::from_raw(
+            Matrix::from_raw([
+                Vector::from_raw([1.0, 1.0, 0.0]),
+                Vector::from_raw([1.0, 1.0, 1.0]),
+                Vector::from_raw([1.0, 0.0, 1.0]),
+            ]),
+            Vector::from_raw([0.1, 0.1, 0.2]),
+        );
+
+        let mut input = SparseVector::with_capacity(8);
+        input.push(0);
+        input.push(1);
+        input.push(2);
+
+        let expected = Vector::from_raw([3.1, 2.1, 2.2]);
+        assert_eq!(expected, layer.out(&input));
+    }
+}
