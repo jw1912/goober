@@ -51,9 +51,8 @@ pub struct SparseConnectedLayers<const N: usize> {
     out: Vector<N>,
 }
 
-impl<const N: usize> OutputLayer for SparseConnectedLayers<N> {
-    type Type = Vector<N>;
-    fn output_layer(&self) -> Self::Type {
+impl<const N: usize> OutputLayer<Vector<N>> for SparseConnectedLayers<N> {
+    fn output_layer(&self) -> Vector<N> {
         self.out
     }
 }
@@ -61,8 +60,9 @@ impl<const N: usize> OutputLayer for SparseConnectedLayers<N> {
 impl<T: Activation, const M: usize, const N: usize> FeedForwardNetwork
     for SparseConnected<T, M, N>
 {
-    type Layers = SparseConnectedLayers<N>;
     type InputType = SparseVector;
+    type OutputType = Vector<N>;
+    type Layers = SparseConnectedLayers<N>;
 
     fn adam(&mut self, grad: &Self, momentum: &mut Self, velocity: &mut Self, adj: f32, lr: f32) {
         self.weights.adam(
@@ -93,7 +93,7 @@ impl<T: Activation, const M: usize, const N: usize> FeedForwardNetwork
         &self,
         input: &Self::InputType,
         grad: &mut Self,
-        mut out_err: <Self::Layers as OutputLayer>::Type,
+        mut out_err: Self::OutputType,
         layers: &Self::Layers,
     ) -> Self::InputType {
         out_err = out_err * layers.out.derivative::<T>();

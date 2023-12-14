@@ -8,6 +8,14 @@ pub struct SparseVector {
     inner: Vec<usize>,
 }
 
+impl std::ops::Add<SparseVector> for SparseVector {
+    type Output = SparseVector;
+    fn add(mut self, mut rhs: SparseVector) -> Self::Output {
+        self.inner.append(&mut rhs.inner);
+        self
+    }
+}
+
 impl std::ops::Deref for SparseVector {
     type Target = [usize];
     fn deref(&self) -> &Self::Target {

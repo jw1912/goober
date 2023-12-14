@@ -48,16 +48,16 @@ pub struct DenseConnectedLayers<const N: usize> {
     out: Vector<N>,
 }
 
-impl<const N: usize> OutputLayer for DenseConnectedLayers<N> {
-    type Type = Vector<N>;
-    fn output_layer(&self) -> Self::Type {
+impl<const N: usize> OutputLayer<Vector<N>> for DenseConnectedLayers<N> {
+    fn output_layer(&self) -> Vector<N> {
         self.out
     }
 }
 
 impl<T: Activation, const M: usize, const N: usize> FeedForwardNetwork for DenseConnected<T, M, N> {
-    type Layers = DenseConnectedLayers<N>;
     type InputType = Vector<M>;
+    type OutputType = Vector<N>;
+    type Layers = DenseConnectedLayers<N>;
 
     fn adam(&mut self, g: &Self, m: &mut Self, v: &mut Self, adj: f32, lr: f32) {
         self.weights
@@ -76,7 +76,7 @@ impl<T: Activation, const M: usize, const N: usize> FeedForwardNetwork for Dense
         &self,
         input: &Self::InputType,
         grad: &mut Self,
-        mut out_err: <Self::Layers as OutputLayer>::Type,
+        mut out_err: Self::OutputType,
         layers: &Self::Layers,
     ) -> Self::InputType {
         out_err = out_err * layers.out.derivative::<T>();

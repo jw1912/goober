@@ -5,14 +5,14 @@ mod vector;
 pub use matrix::Matrix;
 pub use vector::{SparseVector, Vector};
 
-pub trait OutputLayer {
-    type Type;
-    fn output_layer(&self) -> Self::Type;
+pub trait OutputLayer<OutputType> {
+    fn output_layer(&self) -> OutputType;
 }
 
 pub trait FeedForwardNetwork: Sized {
-    type Layers: OutputLayer;
-    type InputType;
+    type InputType: Clone;
+    type OutputType: Clone;
+    type Layers: OutputLayer<Self::OutputType>;
 
     fn adam(&mut self, g: &Self, m: &mut Self, v: &mut Self, adj: f32, lr: f32);
 
@@ -42,7 +42,7 @@ pub trait FeedForwardNetwork: Sized {
 
     fn out_with_layers(&self, input: &Self::InputType) -> Self::Layers;
 
-    fn out(&self, input: &Self::InputType) -> <Self::Layers as OutputLayer>::Type {
+    fn out(&self, input: &Self::InputType) -> Self::OutputType {
         self.out_with_layers(input).output_layer()
     }
 
@@ -50,7 +50,7 @@ pub trait FeedForwardNetwork: Sized {
         &self,
         input: &Self::InputType,
         grad: &mut Self,
-        out_err: <Self::Layers as OutputLayer>::Type,
+        out_err: Self::OutputType,
         layers: &Self::Layers,
     ) -> Self::InputType;
 }
