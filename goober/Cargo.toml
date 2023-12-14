@@ -1,7 +1,0 @@
-[package]
-name = "goober"
-version = "0.1.0"
-edition = "2021"
-
-[dependencies]
-goober-derive = { path = "../goober-derive" }

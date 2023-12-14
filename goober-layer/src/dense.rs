@@ -1,6 +1,6 @@
 use std::marker::PhantomData;
 
-use crate::{activation::Activation, FeedForwardNetwork, Matrix, OutputLayer, Vector};
+use goober_core::{activation::Activation, FeedForwardNetwork, Matrix, OutputLayer, Vector};
 
 #[repr(C)]
 #[derive(Clone, Copy)]

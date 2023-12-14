@@ -1,9 +1,23 @@
 [workspace]
 resolver = "2"
 members = [
-    "goober",
+    "goober-core",
     "goober-derive",
+    "goober-layer",
 ]
 
-[patch.crates-io]
-goober = { path = "goober" }
+[workspace.package]
+license = "MIT"
+authors = ["Jamie Whiting"]
+
+[package]
+name = "goober"
+version = "0.1.0"
+edition = "2021"
+license.workspace = true
+authors.workspace = true
+
+[dependencies]
+goober-core = { path = "goober-core" }
+goober-derive = { path = "goober-derive" }
+goober-layer = { path = "goober-layer" }

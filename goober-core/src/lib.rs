@@ -1,12 +1,9 @@
 pub mod activation;
-pub mod layer;
 mod matrix;
 mod vector;
 
 pub use matrix::Matrix;
 pub use vector::{SparseVector, Vector};
-
-pub use goober_derive::FeedForwardNetwork;
 
 pub trait OutputLayer {
     type Type;

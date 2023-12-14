@@ -1,6 +1,6 @@
 use std::marker::PhantomData;
 
-use crate::{
+use goober_core::{
     activation::Activation, FeedForwardNetwork, Matrix, OutputLayer, SparseVector, Vector,
 };
 

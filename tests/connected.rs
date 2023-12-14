@@ -12,11 +12,11 @@ pub struct SubTestNet {
     l2: DenseConnected<ReLU, 16, 1>,
 }
 
-fn main() {
+#[test]
+fn connected() {
     let net = TestNet::boxed_and_zeroed();
 
     let mut input = SparseVector::with_capacity(8);
     input.push(5);
-    let output = net.out(&input);
-    println!("{}", output[0])
+    let _ = net.out(&input);
 }
