@@ -1,14 +1,9 @@
 [package]
-name = "goober-derive"
+name = "goober-layer"
 version = "0.1.0"
 edition = "2021"
 license.workspace = true
 authors.workspace = true
 
-[lib]
-proc-macro = true
-
 [dependencies]
-proc-macro2 = "1.0.70"
-quote = "1.0.33"
-syn = "2.0.39"
+goober-core = { path = "../goober-core" }

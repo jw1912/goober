@@ -1,9 +1,19 @@
 use crate::activation::Activation;
 
+/// Sparse representation of a vector, storing active
+/// indices instead of a value for each index in the vector.
 #[repr(C)]
-#[derive(Clone)]
+#[derive(Clone, Debug, PartialEq, Eq)]
 pub struct SparseVector {
     inner: Vec<usize>,
+}
+
+impl std::ops::Add<SparseVector> for SparseVector {
+    type Output = SparseVector;
+    fn add(mut self, mut rhs: SparseVector) -> Self::Output {
+        self.inner.append(&mut rhs.inner);
+        self
+    }
 }
 
 impl std::ops::Deref for SparseVector {
@@ -25,8 +35,9 @@ impl SparseVector {
     }
 }
 
+/// `N`-Dimensional Vector Type.
 #[repr(C)]
-#[derive(Clone, Copy, Debug)]
+#[derive(Clone, Copy, Debug, PartialEq)]
 pub struct Vector<const N: usize> {
     inner: [f32; N],
 }

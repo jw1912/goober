@@ -1,7 +1,11 @@
 use std::marker::PhantomData;
 
-use crate::{activation::Activation, FeedForwardNetwork, Matrix, OutputLayer, Vector};
+use goober_core::{activation::Activation, FeedForwardNetwork, Matrix, OutputLayer, Vector};
 
+/// Fully-Connected layer.
+/// - `T` is the activation function used.
+/// - `M` is the size of the input vector.
+/// - `N` is the size of the output vector.
 #[repr(C)]
 #[derive(Clone, Copy)]
 pub struct DenseConnected<T: Activation, const M: usize, const N: usize> {
@@ -44,16 +48,16 @@ pub struct DenseConnectedLayers<const N: usize> {
     out: Vector<N>,
 }
 
-impl<const N: usize> OutputLayer for DenseConnectedLayers<N> {
-    type Type = Vector<N>;
-    fn output_layer(&self) -> Self::Type {
+impl<const N: usize> OutputLayer<Vector<N>> for DenseConnectedLayers<N> {
+    fn output_layer(&self) -> Vector<N> {
         self.out
     }
 }
 
 impl<T: Activation, const M: usize, const N: usize> FeedForwardNetwork for DenseConnected<T, M, N> {
-    type Layers = DenseConnectedLayers<N>;
     type InputType = Vector<M>;
+    type OutputType = Vector<N>;
+    type Layers = DenseConnectedLayers<N>;
 
     fn adam(&mut self, g: &Self, m: &mut Self, v: &mut Self, adj: f32, lr: f32) {
         self.weights
@@ -72,7 +76,7 @@ impl<T: Activation, const M: usize, const N: usize> FeedForwardNetwork for Dense
         &self,
         input: &Self::InputType,
         grad: &mut Self,
-        mut out_err: <Self::Layers as OutputLayer>::Type,
+        mut out_err: Self::OutputType,
         layers: &Self::Layers,
     ) -> Self::InputType {
         out_err = out_err * layers.out.derivative::<T>();
@@ -83,5 +87,40 @@ impl<T: Activation, const M: usize, const N: usize> FeedForwardNetwork for Dense
 
         grad.bias += out_err;
         self.transpose_mul(out_err)
+    }
+}
+
+#[cfg(test)]
+mod test {
+    use super::DenseConnected;
+
+    #[test]
+    fn dense_connected() {
+        use goober_core::{activation::ReLU, FeedForwardNetwork, Matrix, Vector};
+
+        let layer: DenseConnected<ReLU, 3, 3> = DenseConnected::from_raw(
+            Matrix::from_raw([
+                Vector::from_raw([1.0, 1.0, 0.0]),
+                Vector::from_raw([1.0, 1.0, 1.0]),
+                Vector::from_raw([1.0, 0.0, 1.0]),
+            ]),
+            Vector::from_raw([0.1, 0.1, 0.2]),
+        );
+
+        let inputs = [
+            Vector::from_raw([1.0, 0.0, 0.0]),
+            Vector::from_raw([1.0, 1.0, 1.0]),
+            Vector::from_raw([5.0, 3.0, -2.0]),
+        ];
+
+        let expected = [
+            Vector::from_raw([1.1, 1.1, 1.2]),
+            Vector::from_raw([2.1, 3.1, 2.2]),
+            Vector::from_raw([8.1, 6.1, 3.2]),
+        ];
+
+        for (i, &e) in inputs.iter().zip(expected.iter()) {
+            assert_eq!(e, layer.out(i));
+        }
     }
 }

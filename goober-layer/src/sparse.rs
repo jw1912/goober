@@ -1,9 +1,13 @@
 use std::marker::PhantomData;
 
-use crate::{
+use goober_core::{
     activation::Activation, FeedForwardNetwork, Matrix, OutputLayer, SparseVector, Vector,
 };
 
+/// Fully-Connected layer with sparse input.
+/// - `T` is the activation function used.
+/// - `M` is the size of the input vector.
+/// - `N` is the size of the output vector.
 #[repr(C)]
 #[derive(Clone, Copy)]
 pub struct SparseConnected<T: Activation, const M: usize, const N: usize> {
@@ -47,9 +51,8 @@ pub struct SparseConnectedLayers<const N: usize> {
     out: Vector<N>,
 }
 
-impl<const N: usize> OutputLayer for SparseConnectedLayers<N> {
-    type Type = Vector<N>;
-    fn output_layer(&self) -> Self::Type {
+impl<const N: usize> OutputLayer<Vector<N>> for SparseConnectedLayers<N> {
+    fn output_layer(&self) -> Vector<N> {
         self.out
     }
 }
@@ -57,8 +60,9 @@ impl<const N: usize> OutputLayer for SparseConnectedLayers<N> {
 impl<T: Activation, const M: usize, const N: usize> FeedForwardNetwork
     for SparseConnected<T, M, N>
 {
-    type Layers = SparseConnectedLayers<N>;
     type InputType = SparseVector;
+    type OutputType = Vector<N>;
+    type Layers = SparseConnectedLayers<N>;
 
     fn adam(&mut self, grad: &Self, momentum: &mut Self, velocity: &mut Self, adj: f32, lr: f32) {
         self.weights.adam(
@@ -89,7 +93,7 @@ impl<T: Activation, const M: usize, const N: usize> FeedForwardNetwork
         &self,
         input: &Self::InputType,
         grad: &mut Self,
-        mut out_err: <Self::Layers as OutputLayer>::Type,
+        mut out_err: Self::OutputType,
         layers: &Self::Layers,
     ) -> Self::InputType {
         out_err = out_err * layers.out.derivative::<T>();
@@ -100,5 +104,32 @@ impl<T: Activation, const M: usize, const N: usize> FeedForwardNetwork
 
         grad.bias += out_err;
         SparseVector::with_capacity(0)
+    }
+}
+
+#[cfg(test)]
+mod test {
+    use super::SparseConnected;
+
+    #[test]
+    fn sparse_connected() {
+        use goober_core::{activation::ReLU, FeedForwardNetwork, Matrix, SparseVector, Vector};
+
+        let layer: SparseConnected<ReLU, 3, 3> = SparseConnected::from_raw(
+            Matrix::from_raw([
+                Vector::from_raw([1.0, 1.0, 0.0]),
+                Vector::from_raw([1.0, 1.0, 1.0]),
+                Vector::from_raw([1.0, 0.0, 1.0]),
+            ]),
+            Vector::from_raw([0.1, 0.1, 0.2]),
+        );
+
+        let mut input = SparseVector::with_capacity(8);
+        input.push(0);
+        input.push(1);
+        input.push(2);
+
+        let expected = Vector::from_raw([3.1, 2.1, 2.2]);
+        assert_eq!(expected, layer.out(&input));
     }
 }

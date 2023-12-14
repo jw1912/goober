@@ -1,7 +1,8 @@
 use crate::Vector;
 
+/// `M`x`N` Matrix Type.
 #[repr(C)]
-#[derive(Clone, Copy)]
+#[derive(Clone, Copy, Debug, PartialEq)]
 pub struct Matrix<const M: usize, const N: usize> {
     inner: [Vector<N>; M],
 }
