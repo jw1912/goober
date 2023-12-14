@@ -2,6 +2,10 @@ use std::marker::PhantomData;
 
 use goober_core::{activation::Activation, FeedForwardNetwork, Matrix, OutputLayer, Vector};
 
+/// Fully-Connected layer.
+/// - `T` is the activation function used.
+/// - `M` is the size of the input vector.
+/// - `N` is the size of the output vector.
 #[repr(C)]
 #[derive(Clone, Copy)]
 pub struct DenseConnected<T: Activation, const M: usize, const N: usize> {

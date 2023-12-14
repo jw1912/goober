@@ -68,6 +68,7 @@ pub fn network_utils(input: proc_macro::TokenStream) -> proc_macro::TokenStream 
             }
 
             fn out_with_layers(&self, input: &Self::InputType) -> Self::Layers {
+                use goober::OutputLayer as __InternalOutputLayer;
                 #layer_exprs
                 Self::Layers {
                     #layer_exprs_fields
@@ -81,6 +82,7 @@ pub fn network_utils(input: proc_macro::TokenStream) -> proc_macro::TokenStream 
                 err: <Self::Layers as goober::OutputLayer>::Type,
                 layers: &Self::Layers,
             ) -> Self::InputType {
+                use goober::OutputLayer as __InternalOutputLayer;
                 #backprop_exprs
             }
         }

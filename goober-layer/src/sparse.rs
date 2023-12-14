@@ -4,6 +4,10 @@ use goober_core::{
     activation::Activation, FeedForwardNetwork, Matrix, OutputLayer, SparseVector, Vector,
 };
 
+/// Fully-Connected layer with sparse input.
+/// - `T` is the activation function used.
+/// - `M` is the size of the input vector.
+/// - `N` is the size of the output vector.
 #[repr(C)]
 #[derive(Clone, Copy)]
 pub struct SparseConnected<T: Activation, const M: usize, const N: usize> {

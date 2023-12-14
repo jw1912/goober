@@ -1,5 +1,7 @@
 use crate::activation::Activation;
 
+/// Sparse representation of a vector, storing active
+/// indices instead of a value for each index in the vector.
 #[repr(C)]
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct SparseVector {
@@ -25,6 +27,7 @@ impl SparseVector {
     }
 }
 
+/// `N`-Dimensional Vector Type.
 #[repr(C)]
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub struct Vector<const N: usize> {

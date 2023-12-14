@@ -1,7 +1,8 @@
 use goober::{
     activation::ReLU,
     layer::{DenseConnected, SparseConnected},
-    FeedForwardNetwork, OutputLayer, SparseVector,
+    FeedForwardNetwork,
+    SparseVector,
 };
 
 #[derive(FeedForwardNetwork)]
