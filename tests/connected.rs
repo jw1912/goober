@@ -1,4 +1,8 @@
-use goober::{activation::ReLU, layer::{DenseConnected, SparseConnected}, FeedForwardNetwork, OutputLayer, SparseVector};
+use goober::{
+    activation::ReLU,
+    layer::{DenseConnected, SparseConnected},
+    FeedForwardNetwork, OutputLayer, SparseVector,
+};
 
 #[derive(FeedForwardNetwork)]
 pub struct TestNet {

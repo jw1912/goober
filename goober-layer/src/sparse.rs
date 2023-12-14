@@ -109,9 +109,9 @@ mod test {
 
     #[test]
     fn sparse_connected() {
-        use goober_core::{activation::ReLU, FeedForwardNetwork, Vector, Matrix, SparseVector};
+        use goober_core::{activation::ReLU, FeedForwardNetwork, Matrix, SparseVector, Vector};
 
-        let layer: SparseConnected::<ReLU, 3, 3> = SparseConnected::from_raw(
+        let layer: SparseConnected<ReLU, 3, 3> = SparseConnected::from_raw(
             Matrix::from_raw([
                 Vector::from_raw([1.0, 1.0, 0.0]),
                 Vector::from_raw([1.0, 1.0, 1.0]),

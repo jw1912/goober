@@ -92,9 +92,9 @@ mod test {
 
     #[test]
     fn dense_connected() {
-        use goober_core::{activation::ReLU, FeedForwardNetwork, Vector, Matrix};
+        use goober_core::{activation::ReLU, FeedForwardNetwork, Matrix, Vector};
 
-        let layer: DenseConnected::<ReLU, 3, 3> = DenseConnected::from_raw(
+        let layer: DenseConnected<ReLU, 3, 3> = DenseConnected::from_raw(
             Matrix::from_raw([
                 Vector::from_raw([1.0, 1.0, 0.0]),
                 Vector::from_raw([1.0, 1.0, 1.0]),
