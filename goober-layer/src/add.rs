@@ -1,5 +1,6 @@
 use goober_core::{FeedForwardNetwork, OutputLayer};
 
+/// Adds two sub-networks that have common inputs and outputs.
 #[repr(C)]
 #[derive(Clone, Copy)]
 pub struct Add<A, B> {
