@@ -19,14 +19,14 @@ where
     }
 }
 
-pub struct AddSubNetsLayers<A, B>
+pub struct AddLayers<A, B>
 where A: FeedForwardNetwork, B: FeedForwardNetwork
 {
     a: A::Layers,
     b: B::Layers,
 }
 
-impl<A, B> OutputLayer<A::OutputType> for AddSubNetsLayers<A, B>
+impl<A, B> OutputLayer<A::OutputType> for AddLayers<A, B>
 where
     A: FeedForwardNetwork,
     B: FeedForwardNetwork<OutputType = A::OutputType>,
@@ -46,7 +46,7 @@ where
 {
     type InputType = A::InputType;
     type OutputType = A::OutputType;
-    type Layers = AddSubNetsLayers<A, B>;
+    type Layers = AddLayers<A, B>;
 
     fn adam(&mut self, g: &Self, m: &mut Self, v: &mut Self, adj: f32, lr: f32) {
         self.a.adam(&g.a, &mut m.a, &mut v.a, adj, lr);
