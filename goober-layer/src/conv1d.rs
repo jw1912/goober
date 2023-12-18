@@ -7,7 +7,14 @@ use goober_core::{FeedForwardNetwork, OutputLayer, Vector, activation::Activatio
 #[derive(Clone, Copy)]
 pub struct Conv1D<T, const M: usize, const N: usize> {
     weights: Vector<M>,
+    bias: Vector<N>,
     phantom: PhantomData<T>,
+}
+
+impl<T, const M: usize, const N: usize> Conv1D<T, M, N> {
+    pub fn from_raw(weights: Vector<M>, bias: Vector<N>) -> Self {
+        Self { weights, bias, phantom: PhantomData }
+    }
 }
 
 pub struct Conv1DLayers<const N: usize> {
@@ -45,7 +52,7 @@ where T: Activation
         let k = M - N + 1;
 
         let out = Vector::from_fn(|i| {
-            let mut val = 0.0;
+            let mut val = self.bias[i];
             for j in 0..k {
                 val += input[i + j] * self.weights[j];
             }
