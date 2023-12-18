@@ -1,4 +1,5 @@
 mod add;
+mod conv1d;
 mod dense;
 mod sparse;
 
