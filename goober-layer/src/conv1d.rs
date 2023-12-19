@@ -63,9 +63,9 @@ where T: Activation
                 let elem = if i < k - 1 || i >= N + k - 1 {
                     0.0
                 } else {
-                    out_err[i - k + 1]
+                    out_err[i - k + 1] * self.weights[j]
                 };
-                val += elem * self.weights[j];
+                val += elem;
             }
             val
         })
