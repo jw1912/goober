@@ -11,6 +11,13 @@ pub struct Conv1D<T, const M: usize, const N: usize> {
     phantom: PhantomData<T>,
 }
 
+impl<T, const M: usize, const N: usize> std::ops::AddAssign<&Conv1D<T, M, N>> for Conv1D<T, M, N> {
+    fn add_assign(&mut self, rhs: &Conv1D<T, M, N>) {
+        self.weights += rhs.weights;
+        self.bias += rhs.bias;
+    }
+}
+
 impl<T, const M: usize, const N: usize> Conv1D<T, M, N> {
     pub fn from_raw(weights: Vector<M>, bias: Vector<N>) -> Self {
         Self { weights, bias, phantom: PhantomData }
