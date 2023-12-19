@@ -22,6 +22,10 @@ impl<T, const M: usize, const N: usize> Conv1D<T, M, N> {
     pub fn from_raw(weights: Vector<M>, bias: Vector<N>) -> Self {
         Self { weights, bias, phantom: PhantomData }
     }
+
+    pub const fn zeroed() -> Self {
+        Self { weights: Vector::zeroed(), bias: Vector::zeroed(), phantom: PhantomData }
+    }
 }
 
 pub struct Conv1DLayers<const N: usize> {
