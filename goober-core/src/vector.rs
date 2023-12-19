@@ -49,6 +49,12 @@ impl<const N: usize> std::ops::Index<usize> for Vector<N> {
     }
 }
 
+impl<const N: usize> std::ops::IndexMut<usize> for Vector<N> {
+    fn index_mut(&mut self, index: usize) -> &mut Self::Output {
+        &mut self.inner[index]
+    }
+}
+
 impl<const N: usize> std::ops::Add<Vector<N>> for Vector<N> {
     type Output = Vector<N>;
     fn add(mut self, rhs: Vector<N>) -> Self::Output {
