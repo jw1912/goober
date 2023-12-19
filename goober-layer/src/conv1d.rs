@@ -36,16 +36,39 @@ where T: Activation
 
     fn adam(&mut self, g: &Self, m: &mut Self, v: &mut Self, adj: f32, lr: f32) {
         self.weights.adam(g.weights, &mut m.weights, &mut v.weights, adj, lr);
+        self.bias.adam(g.bias, &mut m.bias, &mut v.bias, adj, lr);
     }
 
     fn backprop(
         &self,
         input: &Vector<M>,
         grad: &mut Self,
-        out_err: Vector<N>,
+        mut out_err: Vector<N>,
         layers: &Conv1DLayers<N>,
     ) -> Vector<M> {
-        unimplemented!()
+        let k = M - N + 1;
+        out_err = out_err * layers.out.derivative::<T>();
+
+        grad.bias += out_err;
+
+        for i in 0..N {
+            for j in 0..k {
+                grad.weights[j] += out_err[i] * input[i + j];
+            }
+        }
+
+        Vector::from_fn(|i| {
+            let mut val = 0.0;
+            for j in 0..k {
+                let elem = if i < k - 1 || i >= N + k - 1 {
+                    0.0
+                } else {
+                    out_err[i - k + 1]
+                };
+                val += elem * self.weights[j];
+            }
+            val
+        })
     }
 
     fn out_with_layers(&self, input: &Vector<M>) -> Conv1DLayers<N> {
