@@ -39,6 +39,14 @@ impl<T: Activation, const M: usize, const N: usize> DenseConnected<T, M, N> {
         }
     }
 
+    pub fn from_fn<W: FnMut(usize, usize) -> f32, B: FnMut(usize) -> f32>(w: W, b: B) -> Self {
+        Self {
+            weights: Matrix::from_fn(w),
+            bias: Vector::from_fn(b),
+            phantom: PhantomData,
+        }
+    }
+
     pub fn transpose_mul(&self, out: Vector<N>) -> Vector<M> {
         self.weights.transpose_mul(out)
     }

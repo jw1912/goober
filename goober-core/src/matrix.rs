@@ -44,6 +44,17 @@ impl<const M: usize, const N: usize> Matrix<M, N> {
         Self { inner }
     }
 
+    pub fn from_fn<F: FnMut(usize, usize) -> f32>(mut f: F) -> Self {
+        let mut rows = [Vector::zeroed(); M];
+
+        for (i, row) in rows.iter_mut().enumerate() {
+            let inner_f = |j| f(i, j);
+            *row = Vector::from_fn(inner_f);
+        }
+
+        Self::from_raw(rows)
+    }
+
     pub fn transpose_mul(&self, out: Vector<M>) -> Vector<N> {
         Vector::from_fn(|i| {
             let mut v = 0.0;
