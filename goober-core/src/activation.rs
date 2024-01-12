@@ -31,3 +31,16 @@ impl Activation for ReLU {
         }
     }
 }
+
+#[derive(Clone, Copy)]
+pub struct Tanh;
+impl Activation for Tanh {
+    fn activate(x: f32) -> f32 {
+        x.tanh()
+    }
+
+    fn derivative(x: f32) -> f32 {
+        let t = x.tanh();
+        1.0 - t * t
+    }
+}
