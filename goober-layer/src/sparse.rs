@@ -30,8 +30,16 @@ impl<T: Activation, const M: usize, const N: usize> SparseConnected<T, M, N> {
         self.weights[idx]
     }
 
+    pub fn weights_row_mut(&mut self, idx: usize) -> &mut Vector<N> {
+        &mut self.weights[idx]
+    }
+
     pub fn bias(&self) -> Vector<N> {
         self.bias
+    }
+
+    pub fn bias_mut(&mut self) -> &mut Vector<N> {
+        &mut self.bias
     }
 
     pub const fn zeroed() -> Self {
