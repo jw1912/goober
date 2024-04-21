@@ -61,7 +61,7 @@ impl<const M: usize, const N: usize> Matrix<M, N> {
     pub fn transpose_mul(&self, out: &Vector<N>) -> Vector<M> {
         Vector::from_fn(|i| {
             let mut v = 0.0;
-            for j in 0..M {
+            for j in 0..N {
                 v += self.inner[j][i] * out[j];
             }
             v
