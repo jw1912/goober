@@ -62,7 +62,7 @@ impl<const M: usize, const N: usize> Matrix<M, N> {
         Vector::from_fn(|i| {
             let mut v = 0.0;
             for j in 0..N {
-                v += self.inner[j][i] * out[j];
+                v += self.inner[i][j] * out[j];
             }
             v
         })
