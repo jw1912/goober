@@ -196,4 +196,10 @@ impl<const N: usize> Vector<N> {
         *v = B2 * *v + (1. - B2) * g * g;
         *self -= lr * *m / (v.sqrt() + 0.000_000_01);
     }
+
+    pub fn madd(&mut self, other: &Self, mul: f32) {
+        for (i, j) in self.inner.iter_mut().zip(other.inner.iter()) {
+            *i += mul * *j;
+        }
+    }
 }

@@ -9,7 +9,7 @@ use goober_core::{activation::Activation, FeedForwardNetwork, Matrix, OutputLaye
 #[repr(C)]
 #[derive(Clone, Copy)]
 pub struct DenseConnected<T: Activation, const M: usize, const N: usize> {
-    weights: Matrix<N, M>,
+    weights: Matrix<M, N>,
     bias: Vector<N>,
     phantom: PhantomData<T>,
 }
@@ -27,11 +27,11 @@ impl<T: Activation, const M: usize, const N: usize> DenseConnected<T, M, N> {
     pub const INPUT_SIZE: usize = M;
     pub const OUTPUT_SIZE: usize = N;
 
-    pub fn weights_row(&self, idx: usize) -> Vector<M> {
-        self.weights[idx]
+    pub fn weights_col(&self, idx: usize) -> &Vector<N> {
+        &self.weights[idx]
     }
 
-    pub fn weights_row_mut(&mut self, idx: usize) -> &mut Vector<M> {
+    pub fn weights_col_mut(&mut self, idx: usize) -> &mut Vector<N> {
         &mut self.weights[idx]
     }
 
@@ -47,7 +47,7 @@ impl<T: Activation, const M: usize, const N: usize> DenseConnected<T, M, N> {
         Self::from_raw(Matrix::zeroed(), Vector::zeroed())
     }
 
-    pub const fn from_raw(weights: Matrix<N, M>, bias: Vector<N>) -> Self {
+    pub const fn from_raw(weights: Matrix<M, N>, bias: Vector<N>) -> Self {
         Self {
             weights,
             bias,
@@ -61,10 +61,6 @@ impl<T: Activation, const M: usize, const N: usize> DenseConnected<T, M, N> {
             bias: Vector::from_fn(b),
             phantom: PhantomData,
         }
-    }
-
-    pub fn transpose_mul(&self, out: Vector<N>) -> Vector<M> {
-        self.weights.transpose_mul(out)
     }
 }
 
@@ -92,7 +88,7 @@ impl<T: Activation, const M: usize, const N: usize> FeedForwardNetwork for Dense
 
     fn out_with_layers(&self, input: &Self::InputType) -> Self::Layers {
         Self::Layers {
-            out: (self.weights * *input + self.bias).activate::<T>(),
+            out: (self.weights.mul(input) + self.bias).activate::<T>(),
         }
     }
 
@@ -106,11 +102,11 @@ impl<T: Activation, const M: usize, const N: usize> FeedForwardNetwork for Dense
         out_err = out_err * layers.out.derivative::<T>();
 
         for (i, row) in grad.weights.iter_mut().enumerate() {
-            *row += out_err[i] * *input;
+            row.madd(&out_err, input[i]);
         }
 
         grad.bias += out_err;
-        self.transpose_mul(out_err)
+        self.weights.transpose_mul(&out_err)
     }
 }
 
@@ -124,9 +120,9 @@ mod test {
 
         let layer: DenseConnected<ReLU, 3, 3> = DenseConnected::from_raw(
             Matrix::from_raw([
-                Vector::from_raw([1.0, 1.0, 0.0]),
                 Vector::from_raw([1.0, 1.0, 1.0]),
-                Vector::from_raw([1.0, 0.0, 1.0]),
+                Vector::from_raw([1.0, 1.0, 0.0]),
+                Vector::from_raw([0.0, 1.0, 1.0]),
             ]),
             Vector::from_raw([0.1, 0.1, 0.2]),
         );
