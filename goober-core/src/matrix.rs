@@ -1,6 +1,6 @@
 use crate::Vector;
 
-/// `M`x`N` Matrix Type.
+/// `N`x`M` Matrix Type.
 #[repr(C)]
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub struct Matrix<const M: usize, const N: usize> {
@@ -28,13 +28,6 @@ impl<const M: usize, const N: usize> std::ops::DerefMut for Matrix<M, N> {
     }
 }
 
-impl<const M: usize, const N: usize> std::ops::Mul<Vector<N>> for Matrix<M, N> {
-    type Output = Vector<M>;
-    fn mul(self, rhs: Vector<N>) -> Self::Output {
-        Vector::<M>::from_fn(|i| self.inner[i].dot(&rhs))
-    }
-}
-
 impl<const M: usize, const N: usize> Matrix<M, N> {
     pub const fn zeroed() -> Self {
         Self::from_raw([Vector::zeroed(); M])
@@ -55,11 +48,21 @@ impl<const M: usize, const N: usize> Matrix<M, N> {
         Self::from_raw(rows)
     }
 
-    pub fn transpose_mul(&self, out: Vector<M>) -> Vector<N> {
+    pub fn mul(&self, inp: &Vector<M>) -> Vector<N> {
+        let mut result = Vector::zeroed();
+
+        for i in 0..M {
+            result.madd(&self.inner[i], inp[i]);
+        }
+
+        result
+    }
+
+    pub fn transpose_mul(&self, out: &Vector<N>) -> Vector<M> {
         Vector::from_fn(|i| {
             let mut v = 0.0;
-            for j in 0..M {
-                v += self.inner[j][i] * out[j];
+            for j in 0..N {
+                v += self.inner[i][j] * out[j];
             }
             v
         })
